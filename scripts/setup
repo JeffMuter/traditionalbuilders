@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -e
+
+echo "Setting up Traditional Builders..."
+mkdir -p bin static/css
+
+echo "Running migrations..."
+goose -dir db/migrations sqlite3 traditionbuilders.db up
+
+echo "Generating templates..."
+templ generate
+
+echo "Building CSS..."
+tailwindcss -i static/css/input.css -o static/css/output.css
+
+echo ""
+echo "✓ Setup complete! Run 'run' to start the server."

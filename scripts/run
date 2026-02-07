@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+templ generate
+tailwindcss -i static/css/input.css -o static/css/output.css
+go run cmd/server/main.go

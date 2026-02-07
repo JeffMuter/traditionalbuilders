@@ -13,7 +13,7 @@ pkgs.mkShell {
 
   shellHook = ''
     export GOPATH=$HOME/go
-    export PATH=$GOPATH/bin:$PATH
+    export PATH=$GOPATH/bin:$PWD/scripts:$PATH
     
     echo ""
     echo "🏛️  Traditional Builders - Dev Environment"
@@ -24,10 +24,14 @@ pkgs.mkShell {
     echo "  Goose   $(goose -version 2>&1 | head -n1 | awk '{print $NF}')"
     echo "  Templ   $(templ version 2>&1 | head -n1 || echo 'installed')"
     echo ""
-    echo "Quick Start:"
-    echo "  make setup   - Initialize project"
-    echo "  make dev     - Start development server"
-    echo "  make help    - Show all commands"
+    echo "Commands:"
+    echo "  setup          - Initialize project"
+    echo "  run            - Start development server"
+    echo "  build          - Build production binary"
+    echo "  test           - Run tests"
+    echo "  migrate        - Run database migrations"
+    echo "  migrate-down   - Rollback last migration"
+    echo "  clean          - Remove generated files"
     echo ""
   '';
 }

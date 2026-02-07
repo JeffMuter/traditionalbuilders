@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+rm -f traditionbuilders.db
+rm -f static/css/output.css
+rm -f bin/server
+rm -rf bin
+rm -f templates/*_templ.go

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+goose -dir db/migrations sqlite3 traditionbuilders.db down
