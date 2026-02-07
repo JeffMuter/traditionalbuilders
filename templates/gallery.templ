@@ -1,12 +1,12 @@
 package templates
 
-templ Landing() {
+templ Gallery() {
 	<!DOCTYPE html>
 	<html lang="en" class="">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<title>Traditional Builders - Find Expert Traditional Architects & Builders</title>
+			<title>Gallery - Traditional Builders</title>
 			<link rel="stylesheet" href="/static/css/output.css"/>
 			<script>
 				if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -21,9 +21,11 @@ templ Landing() {
 				<header class="bg-white dark:bg-stone-800 shadow-sm transition-colors">
 					<nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 						<div class="flex justify-between items-center">
-							<h1 class="text-2xl font-serif font-bold text-stone-800 dark:text-stone-100">Traditional Builders</h1>
+							<h1 class="text-2xl font-serif font-bold text-stone-800 dark:text-stone-100">
+								<a href="/" class="hover:text-stone-600 dark:hover:text-stone-300">Traditional Builders</a>
+							</h1>
 							<div class="flex items-center space-x-6">
-								<a href="/gallery" class="text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100">Gallery</a>
+								<a href="/gallery" class="text-stone-900 dark:text-stone-100 font-medium hover:text-stone-600 dark:hover:text-stone-300">Gallery</a>
 								<a href="#" class="text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100">Estimate Costs</a>
 								<a href="/" class="bg-stone-800 dark:bg-stone-700 text-white px-4 py-2 rounded hover:bg-stone-700 dark:hover:bg-stone-600">Get Started</a>
 								<button id="theme-toggle" class="ml-2 p-2 rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600" aria-label="Toggle theme">
@@ -35,42 +37,56 @@ templ Landing() {
 					</nav>
 				</header>
 				<main class="flex-grow">
-					<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-						<div class="text-center">
-							<h2 class="text-5xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-6">
-								Build with Timeless Beauty
+					<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+						<div class="text-center mb-12">
+							<h2 class="text-4xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-4">
+								Traditional Architecture Gallery
 							</h2>
-							<p class="text-xl text-stone-600 dark:text-stone-300 mb-8 max-w-2xl mx-auto">
-								Connect with skilled architects and builders who specialize in traditional, classical, and vernacular architecture.
-								Get accurate cost estimates for your dream project.
+							<p class="text-xl text-stone-600 dark:text-stone-300 max-w-3xl mx-auto">
+								Examples of timeless traditional and classical architecture showcasing beauty, proportion, and craftsmanship.
 							</p>
-							<div class="flex justify-center gap-4">
-								<a href="#" class="bg-stone-800 dark:bg-stone-700 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-stone-700 dark:hover:bg-stone-600">
-									Find a Builder
-								</a>
-								<a href="#" class="bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-100 border-2 border-stone-800 dark:border-stone-600 px-8 py-3 rounded-lg text-lg font-medium hover:bg-stone-50 dark:hover:bg-stone-700">
-									Estimate Your Project
-								</a>
-							</div>
 						</div>
-					</section>
-					<section class="bg-white dark:bg-stone-800 py-16 transition-colors">
-						<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-							<div class="grid md:grid-cols-3 gap-8">
-								<div class="text-center">
-									<div class="text-4xl mb-4">🏛️</div>
-									<h3 class="text-xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Expert Professionals</h3>
-									<p class="text-stone-600 dark:text-stone-300">Vetted architects and builders with proven traditional building expertise</p>
+						<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
+								<img src="/static/images/gallery/gould-home-2.jpg" alt="Traditional Georgian style home" class="w-full h-64 object-cover"/>
+								<div class="p-4">
+									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Georgian Architecture</h3>
+									<p class="text-stone-600 dark:text-stone-300">Classic Georgian style featuring symmetrical design and traditional proportions</p>
 								</div>
-								<div class="text-center">
-									<div class="text-4xl mb-4">💰</div>
-									<h3 class="text-xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Cost Transparency</h3>
-									<p class="text-stone-600 dark:text-stone-300">Get accurate estimates based on real traditional construction data</p>
+							</div>
+							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
+								<img src="/static/images/gallery/tudor.jpg" alt="Tudor style residence" class="w-full h-64 object-cover"/>
+								<div class="p-4">
+									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Tudor Revival</h3>
+									<p class="text-stone-600 dark:text-stone-300">Distinctive Tudor elements with decorative timber framing and steep roof lines</p>
 								</div>
-								<div class="text-center">
-									<div class="text-4xl mb-4">🏗️</div>
-									<h3 class="text-xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Quality Craftsmanship</h3>
-									<p class="text-stone-600 dark:text-stone-300">Connect with builders who value time-honored techniques and materials</p>
+							</div>
+							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
+								<img src="/static/images/gallery/trad-home-ex.jpg" alt="Colonial style home" class="w-full h-64 object-cover"/>
+								<div class="p-4">
+									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Colonial Style</h3>
+									<p class="text-stone-600 dark:text-stone-300">Traditional colonial architecture with classic columns and formal entrance</p>
+								</div>
+							</div>
+							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
+								<img src="/static/images/gallery/TradHouse-eae0ee5c21d7427284ee24c879575739.jpg" alt="Mediterranean villa" class="w-full h-64 object-cover"/>
+								<div class="p-4">
+									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Mediterranean Villa</h3>
+									<p class="text-stone-600 dark:text-stone-300">Mediterranean influenced design with stucco walls and tile roofing</p>
+								</div>
+							</div>
+							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
+								<img src="/static/images/gallery/traditional-exterior-shapiro-didway-img~0331fa9300cb8a72_14-1458-1-7164c5c.jpg" alt="Victorian architecture" class="w-full h-64 object-cover"/>
+								<div class="p-4">
+									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Victorian Era</h3>
+									<p class="text-stone-600 dark:text-stone-300">Ornate Victorian design with detailed woodwork and decorative elements</p>
+								</div>
+							</div>
+							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
+								<img src="/static/images/gallery/gould-home-2.jpg" alt="Classical architecture details" class="w-full h-64 object-cover"/>
+								<div class="p-4">
+									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Classical Details</h3>
+									<p class="text-stone-600 dark:text-stone-300">Fine classical architecture showcasing traditional craftsmanship and materials</p>
 								</div>
 							</div>
 						</div>

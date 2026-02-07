@@ -28,10 +28,11 @@ func main() {
 	// Setup routes
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.Landing)
+	mux.HandleFunc("/gallery", handlers.Gallery)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	// Start server
-	addr := ":8080"
+	addr := ":8081"
 	log.Printf("Server starting on http://localhost%s", addr)
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatal(err)
