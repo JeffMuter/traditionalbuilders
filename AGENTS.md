@@ -11,6 +11,7 @@ Traditional Builders is a web platform connecting clients with traditional archi
 - **Templates**: [templ](https://templ.guide/) for type-safe HTML templating
 - **Database**: SQLite 3 with Goose migrations
 - **Styling**: Tailwind CSS
+- **Frontend Interactivity**: htmx 2.0.4 (CDN)
 - **Dev Environment**: Nix shell (direnv-enabled)
 
 ## Essential Commands
@@ -249,6 +250,34 @@ projects (
 - `tailwind.config.js` scans `./templates/**/*.templ`
 - Input: `static/css/input.css` (contains Tailwind directives)
 - Output: `static/css/output.css` (generated, gitignored)
+
+### Frontend Interactivity
+
+**Framework:** htmx 2.0.4
+
+**Integration:**
+- Loaded via CDN in all page templates: `<script src="https://unpkg.com/htmx.org@2.0.4" ...></script>`
+- Enables declarative AJAX, CSS transitions, WebSockets, and server-sent events via HTML attributes
+- No build step required
+
+**Common htmx Patterns:**
+- `hx-get="/api/endpoint"` - Issue GET request
+- `hx-post="/api/endpoint"` - Issue POST request
+- `hx-trigger="click, keyup delay:300ms"` - Event triggers
+- `hx-target="#result"` - Where to insert response
+- `hx-swap="innerHTML"` - How to swap content (innerHTML, outerHTML, beforeend, etc.)
+- `hx-indicator="#spinner"` - Show loading state
+
+**Usage Guidelines:**
+- Use htmx for dynamic updates without full page reloads
+- Handlers can return HTML fragments (templ components) for htmx requests
+- Check `r.Header.Get("HX-Request")` to detect htmx requests vs full page loads
+- Return appropriate content: full page for normal requests, fragments for htmx
+- Leverage Go's templ components to render partial HTML responses
+
+**Resources:**
+- [htmx Documentation](https://htmx.org/docs/)
+- [htmx Examples](https://htmx.org/examples/)
 
 ## Development Environment
 

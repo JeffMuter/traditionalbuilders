@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Resetting database..."
+rm -f traditionbuilders.db
+goose -dir db/migrations sqlite3 traditionbuilders.db up
+echo "Done."

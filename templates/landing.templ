@@ -8,6 +8,7 @@ templ Landing() {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>Traditional Builders - Find Expert Traditional Architects & Builders</title>
 			<link rel="stylesheet" href="/static/css/output.css"/>
+			<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
 			<script>
 				if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
 					document.documentElement.classList.add('dark')
@@ -44,13 +45,31 @@ templ Landing() {
 								Connect with skilled architects and builders who specialize in traditional, classical, and vernacular architecture.
 								Get accurate cost estimates for your dream project.
 							</p>
-							<div class="flex justify-center gap-4">
-								<a href="#" class="bg-stone-800 dark:bg-stone-700 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-stone-700 dark:hover:bg-stone-600">
-									Find a Builder
-								</a>
-								<a href="#" class="bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-100 border-2 border-stone-800 dark:border-stone-600 px-8 py-3 rounded-lg text-lg font-medium hover:bg-stone-50 dark:hover:bg-stone-700">
-									Estimate Your Project
-								</a>
+							<div class="max-w-2xl mx-auto">
+								<label for="zip-search" class="block text-lg font-medium text-stone-700 dark:text-stone-200 mb-4">
+									Find traditional builders near you
+								</label>
+								<form action="/builders" method="GET" class="flex gap-3">
+									<input
+										type="text"
+										id="zip-search"
+										name="zip"
+										placeholder="Enter zip code (e.g. 32801)"
+										maxlength="5"
+										pattern="\d{5}"
+										required
+										class="flex-grow px-6 py-4 text-lg border-2 border-stone-300 dark:border-stone-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500"
+									/>
+									<button
+										type="submit"
+										class="px-8 py-4 bg-stone-800 dark:bg-stone-700 text-white text-lg font-medium rounded-lg hover:bg-stone-700 dark:hover:bg-stone-600 focus:outline-none focus:ring-2 focus:ring-stone-500 transition-colors whitespace-nowrap"
+									>
+										Find Builders
+									</button>
+								</form>
+								<p class="mt-3 text-sm text-stone-500 dark:text-stone-400 text-center">
+									Enter your 5-digit zip code to discover traditional builders and architects near you
+								</p>
 							</div>
 						</div>
 					</section>
@@ -115,6 +134,7 @@ templ Landing() {
 						}
 					}
 				});
+
 			</script>
 		</body>
 	</html>

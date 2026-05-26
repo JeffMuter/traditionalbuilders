@@ -1,12 +1,17 @@
 package templates
 
-templ Gallery() {
+import (
+	"fmt"
+	"github.com/emerald/traditionbuilders/internal/models"
+)
+
+templ Builders(zip string, results []models.BuilderResult, errorMsg string) {
 	<!DOCTYPE html>
 	<html lang="en" class="">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<title>Gallery - Traditional Builders</title>
+			<title>Find Builders - Traditional Builders</title>
 			<link rel="stylesheet" href="/static/css/output.css"/>
 			<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
 			<script>
@@ -26,7 +31,7 @@ templ Gallery() {
 								<a href="/" class="hover:text-stone-600 dark:hover:text-stone-300">Traditional Builders</a>
 							</h1>
 							<div class="flex items-center space-x-6">
-								<a href="/gallery" class="text-stone-900 dark:text-stone-100 font-medium hover:text-stone-600 dark:hover:text-stone-300">Gallery</a>
+								<a href="/gallery" class="text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100">Gallery</a>
 								<a href="#" class="text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100">Estimate Costs</a>
 								<a href="/" class="bg-stone-800 dark:bg-stone-700 text-white px-4 py-2 rounded hover:bg-stone-700 dark:hover:bg-stone-600">Get Started</a>
 								<button id="theme-toggle" class="ml-2 p-2 rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600" aria-label="Toggle theme">
@@ -38,59 +43,63 @@ templ Gallery() {
 					</nav>
 				</header>
 				<main class="flex-grow">
-					<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-						<div class="text-center mb-12">
-							<h2 class="text-4xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-4">
-								Traditional Architecture Gallery
-							</h2>
-							<p class="text-xl text-stone-600 dark:text-stone-300 max-w-3xl mx-auto">
-								Examples of timeless traditional and classical architecture showcasing beauty, proportion, and craftsmanship.
-							</p>
+					<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+						<div class="mb-8">
+							<a href="/" class="inline-flex items-center text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 text-sm font-medium transition-colors">
+								<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+								</svg>
+								Back to Search
+							</a>
 						</div>
-						<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
-								<img src="/static/images/gallery/gould-home-2.jpg" alt="Traditional Georgian style home" class="w-full h-64 object-cover"/>
-								<div class="p-4">
-									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Georgian Architecture</h3>
-									<p class="text-stone-600 dark:text-stone-300">Classic Georgian style featuring symmetrical design and traditional proportions</p>
-								</div>
+						if errorMsg != "" {
+							<div class="text-center py-16">
+								<div class="text-6xl mb-6">🏛️</div>
+								<h2 class="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-4">
+									{ errorMsg }
+								</h2>
+								<p class="text-stone-600 dark:text-stone-300 mb-8">
+									Please return to the search page and enter a valid 5-digit US zip code.
+								</p>
+								<a href="/" class="inline-block bg-stone-800 dark:bg-stone-700 text-white px-8 py-3 rounded-lg hover:bg-stone-700 dark:hover:bg-stone-600 font-medium transition-colors">
+									Return to Search
+								</a>
 							</div>
-							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
-								<img src="/static/images/gallery/tudor.jpg" alt="Tudor style residence" class="w-full h-64 object-cover"/>
-								<div class="p-4">
-									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Tudor Revival</h3>
-									<p class="text-stone-600 dark:text-stone-300">Distinctive Tudor elements with decorative timber framing and steep roof lines</p>
-								</div>
+						} else if len(results) == 0 {
+							<div class="text-center py-16">
+								<div class="text-6xl mb-6">🔍</div>
+								<h2 class="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-4">
+									No builders found near { zip }
+								</h2>
+								<p class="text-stone-600 dark:text-stone-300 mb-8 max-w-lg mx-auto">
+									We couldn't find any traditional builders near zip code <strong>{ zip }</strong>.
+									Try a nearby zip code, or check back as our directory continues to grow.
+								</p>
+								<a href="/" class="inline-block bg-stone-800 dark:bg-stone-700 text-white px-8 py-3 rounded-lg hover:bg-stone-700 dark:hover:bg-stone-600 font-medium transition-colors">
+									Try Another Zip Code
+								</a>
 							</div>
-							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
-								<img src="/static/images/gallery/trad-home-ex.jpg" alt="Colonial style home" class="w-full h-64 object-cover"/>
-								<div class="p-4">
-									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Colonial Style</h3>
-									<p class="text-stone-600 dark:text-stone-300">Traditional colonial architecture with classic columns and formal entrance</p>
-								</div>
+						} else {
+							<div class="mb-8">
+								<h2 class="text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
+									Traditional Builders Near { zip }
+								</h2>
+								<p class="text-stone-500 dark:text-stone-400 mt-2">
+									{ fmt.Sprintf("%d", len(results)) } builder(s) found, sorted by proximity
+								</p>
 							</div>
-							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
-								<img src="/static/images/gallery/TradHouse-eae0ee5c21d7427284ee24c879575739.jpg" alt="Mediterranean villa" class="w-full h-64 object-cover"/>
-								<div class="p-4">
-									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Mediterranean Villa</h3>
-									<p class="text-stone-600 dark:text-stone-300">Mediterranean influenced design with stucco walls and tile roofing</p>
-								</div>
+							<div class="grid gap-5">
+								for _, b := range results {
+									@builderCard(b)
+								}
 							</div>
-							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
-								<img src="/static/images/gallery/traditional-exterior-shapiro-didway-img~0331fa9300cb8a72_14-1458-1-7164c5c.jpg" alt="Victorian architecture" class="w-full h-64 object-cover"/>
-								<div class="p-4">
-									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Victorian Era</h3>
-									<p class="text-stone-600 dark:text-stone-300">Ornate Victorian design with detailed woodwork and decorative elements</p>
-								</div>
+							<div class="mt-10 pt-6 border-t border-stone-200 dark:border-stone-700 text-center">
+								<p class="text-stone-500 dark:text-stone-400 text-sm mb-4">Not finding what you need? Try a different zip code.</p>
+								<a href="/" class="inline-block text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-600 px-6 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 text-sm font-medium transition-colors">
+									Search Again
+								</a>
 							</div>
-							<div class="bg-white dark:bg-stone-800 rounded-lg shadow-md overflow-hidden transition-colors">
-								<img src="/static/images/gallery/gould-home-2.jpg" alt="Classical architecture details" class="w-full h-64 object-cover"/>
-								<div class="p-4">
-									<h3 class="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 mb-2">Classical Details</h3>
-									<p class="text-stone-600 dark:text-stone-300">Fine classical architecture showcasing traditional craftsmanship and materials</p>
-								</div>
-							</div>
-						</div>
+						}
 					</section>
 				</main>
 				<footer class="bg-stone-800 dark:bg-stone-950 text-white py-8 transition-colors">
@@ -135,4 +144,33 @@ templ Gallery() {
 			</script>
 		</body>
 	</html>
+}
+
+templ builderCard(b models.BuilderResult) {
+	<div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700 p-6 transition-colors hover:shadow-md">
+		<div class="flex justify-between items-start gap-4">
+			<div class="flex-grow">
+				<h3 class="text-xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-1">
+					{ b.Name }
+				</h3>
+				<p class="text-stone-700 dark:text-stone-300 font-medium mb-2">
+					{ b.Specialty }
+				</p>
+				<p class="text-stone-500 dark:text-stone-400 text-sm">
+					{ b.City }, { b.State } { b.ZipCode }
+				</p>
+			</div>
+			<div class="flex-shrink-0 text-right">
+				<span class="inline-block bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+					~{ fmt.Sprintf("%.1f", b.DistanceMiles) } mi
+				</span>
+			</div>
+		</div>
+		<div class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-700 flex justify-between items-center">
+			<span class="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wide">Traditional Builder</span>
+			<a href="#" class="text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 text-sm font-medium transition-colors">
+				View Profile →
+			</a>
+		</div>
+	</div>
 }

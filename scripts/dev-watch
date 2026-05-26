@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Start the live-reload dev server.
+# Runs templ --watch, tailwind --watch, and air in parallel via overmind.
+# Requires: air and overmind (both provided by nix-shell).
+overmind start

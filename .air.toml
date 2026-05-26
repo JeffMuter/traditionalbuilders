@@ -1,0 +1,16 @@
+root      = "."
+tmp_dir   = "tmp"
+
+[build]
+  # Rebuild whenever any .go file changes (including templ-generated _templ.go files)
+  cmd         = "go build -o ./tmp/server ./cmd/server/main.go"
+  bin         = "./tmp/server"
+  delay       = 300          # ms — wait for burst of file saves to settle
+  include_ext = ["go"]
+  exclude_dir = ["tmp", "bin", "vendor"]
+
+[log]
+  time = false
+
+[misc]
+  clean_on_exit = true

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Download and import the full GeoNames US zip code dataset (~41k rows).
+# Replaces the small seed set from migration 003.
+go run cmd/seed-zips/main.go "$@"
