@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 	"strconv"
 
+	"github.com/emerald/traditionbuilders/internal/logging"
 	"github.com/emerald/traditionbuilders/internal/store"
 	"github.com/emerald/traditionbuilders/templates"
 )
@@ -32,7 +32,7 @@ func (h *Handler) Profile(w http.ResponseWriter, r *http.Request) {
 	// failure and degrade to an empty list so the page stays useful.
 	projects, err := h.Store.ListProjects(r.Context(), id)
 	if err != nil {
-		slog.Error("list projects", "professional_id", id, "err", err)
+		logging.FromContext(r.Context()).Error("list projects", "professional_id", id, "err", err)
 		projects = nil
 	}
 

@@ -5,10 +5,10 @@ package store
 import (
 	"context"
 	"database/sql"
-	"log/slog"
 	"math"
 	"sort"
 
+	"github.com/emerald/traditionbuilders/internal/logging"
 	"github.com/emerald/traditionbuilders/internal/models"
 )
 
@@ -88,7 +88,7 @@ func (s *Store) FindBuildersNear(ctx context.Context, zip string) ([]models.Buil
 			state     string
 		)
 		if err := rows.Scan(&id, &name, &specialty, &zipCode, &lat, &lng, &city, &state); err != nil {
-			slog.Error("scan builder row", "zip", zip, "err", err)
+			logging.FromContext(ctx).Error("scan builder row", "zip", zip, "err", err)
 			continue
 		}
 		dist := haversine(userLat, userLng, lat, lng)

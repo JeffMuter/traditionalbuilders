@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"regexp"
 
+	"github.com/emerald/traditionbuilders/internal/logging"
 	"github.com/emerald/traditionbuilders/internal/store"
 )
 
@@ -18,7 +18,7 @@ var zipPattern = regexp.MustCompile(`^\d{5}(?:-\d{4})?$`)
 // It is reached only after the zip-format check has passed, so the possible
 // inputs are ErrZipNotFound (406), DB/context errors (500), or unknown errors
 // (500). The status mapping lives in store.ToHTTPStatus.
-func writeError(w http.ResponseWriter, err error) {
+func writeError(w http.ResponseWriter, r *http.Request, err error) {
 	status := store.ToHTTPStatus(err)
 	msg := "internal error"
 	if store.IsZipNotFound(err) {
@@ -26,12 +26,12 @@ func writeError(w http.ResponseWriter, err error) {
 	} else {
 		// Unexpected store failures are logged server-side; the client only
 		// sees the generic message.
-		slog.Error("search builders failed", "status", status, "err", err)
+		logging.FromContext(r.Context()).Error("search builders failed", "status", status, "err", err)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if encErr := json.NewEncoder(w).Encode(map[string]string{"error": msg}); encErr != nil {
-		slog.Error("encode error response", "err", encErr)
+		logging.FromContext(r.Context()).Error("encode error response", "err", encErr)
 	}
 }
 
@@ -56,7 +56,7 @@ func (h *Handler) SearchBuilders(w http.ResponseWriter, r *http.Request) {
 
 	results, err := h.Store.FindBuildersNear(r.Context(), baseZip(zip))
 	if err != nil {
-		writeError(w, err)
+		writeError(w, r, err)
 		return
 	}
 

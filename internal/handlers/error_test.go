@@ -42,7 +42,8 @@ func TestErrorCategorization(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			writeError(w, tt.error)
+			req, _ := http.NewRequest("GET", "/api/builders?zip=32801", nil)
+			writeError(w, req, tt.error)
 
 			if w.Code != tt.expectedStatus {
 				t.Errorf("status = %d, want %d", w.Code, tt.expectedStatus)

@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log/slog"
 
+	"github.com/emerald/traditionbuilders/internal/logging"
 	"github.com/emerald/traditionbuilders/internal/models"
 )
 
@@ -19,7 +19,7 @@ var ErrProfessionalNotFound = errors.New("professional not found")
 // ErrProfessionalNotFound is returned when id matches no row.
 func (s *Store) GetProfessional(ctx context.Context, id int) (models.Professional, error) {
 	var (
-		p                                                    models.Professional
+		p                                                     models.Professional
 		phone, location, bio, zipCode, city, state, imagePath sql.NullString
 	)
 
@@ -74,7 +74,7 @@ func (s *Store) ListProjects(ctx context.Context, professionalID int) ([]models.
 			cost                        sql.NullInt64
 		)
 		if err := rows.Scan(&pr.ID, &pr.Title, &description, &location, &cost, &done); err != nil {
-			slog.Error("scan project row", "professional_id", professionalID, "err", err)
+			logging.FromContext(ctx).Error("scan project row", "professional_id", professionalID, "err", err)
 			continue
 		}
 		pr.Description = description.String
