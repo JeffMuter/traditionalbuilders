@@ -9,3 +9,6 @@ bin/
 server
 templates/*_templ.go
 dist/
+
+# E2E artifacts: failure screenshots/DOM/diagnostics and success screenshots.
+e2e/artifacts/

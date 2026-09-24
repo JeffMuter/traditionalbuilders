@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
 	"github.com/emerald/traditionbuilders/internal/models"
@@ -28,7 +29,45 @@ func setupIntegrationTest(t *testing.T) *Handler {
 	return &Handler{Store: store.New(db)}
 }
 
-// NewTestDB creates an in-memory SQLite database with schema for testing.
+// setupTestServer builds a full HTTP server (routes + middleware + static file
+// server) backed by a fresh in-memory DB. It returns the server and its base
+// URL. Tests that need real routing, the FileServer, or middleware should use
+// this instead of calling handlers directly so they exercise the same mux as
+// production.
+//
+// The static directory is resolved relative to this package's source tree so
+// the FileServer finds the checked-in assets regardless of the test's working
+// directory.
+func setupTestServer(t *testing.T) *httptest.Server {
+	t.Helper()
+
+	db, err := NewTestDB()
+	if err != nil {
+		t.Fatalf("setup db: %v", err)
+	}
+	t.Cleanup(func() { db.Close() })
+
+	h := &Handler{Store: store.New(db)}
+	server := httptest.NewServer(h.Routes(db, repoStaticDir(t)))
+	t.Cleanup(server.Close)
+	return server
+}
+
+// repoStaticDir returns the absolute path to the static/ directory in the
+// repository root, walking up from the handlers package directory.
+func repoStaticDir(t *testing.T) string {
+	t.Helper()
+	abs, err := filepath.Abs(filepath.Join("..", "..", "static"))
+	if err != nil {
+		t.Fatalf("resolve static dir: %v", err)
+	}
+	return abs
+}
+
+// NewTestDB creates an in-memory SQLite database matching the production
+// schema end-state (after all migrations) and seeds a small deterministic
+// fixture set. It is shared by handler tests, the render-contract tests, and
+// the browser E2E suite so all three assert against the same data.
 func NewTestDB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
@@ -37,7 +76,34 @@ func NewTestDB() (*sql.DB, error) {
 
 	schema := `
 	CREATE TABLE zip_codes (zip TEXT PRIMARY KEY, lat REAL NOT NULL, lng REAL NOT NULL, city TEXT NOT NULL, state TEXT NOT NULL);
-	CREATE TABLE professionals (id INTEGER PRIMARY KEY, name TEXT, specialty TEXT, zip_code TEXT, latitude REAL, longitude REAL);
+	CREATE TABLE professionals (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL,
+		email TEXT UNIQUE NOT NULL,
+		phone TEXT,
+		specialty TEXT NOT NULL,
+		location TEXT,
+		bio TEXT,
+		zip_code TEXT,
+		latitude REAL,
+		longitude REAL,
+		image_path TEXT,
+		provider TEXT DEFAULT 'admin',
+		verified_at DATE,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	);
+	CREATE TABLE projects (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		professional_id INTEGER,
+		title TEXT NOT NULL,
+		description TEXT,
+		location TEXT,
+		cost_estimate INTEGER,
+		completed_at DATE,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (professional_id) REFERENCES professionals(id)
+	);
 	`
 	if _, err := db.Exec(schema); err != nil {
 		db.Close()
@@ -53,6 +119,7 @@ func NewTestDB() (*sql.DB, error) {
 		{"32801", 28.5383, -81.3792, "Orlando", "FL"},
 		{"90210", 34.0901, -118.4065, "Beverly Hills", "CA"},
 		{"32801-1234", 28.5383, -81.3792, "Orlando", "FL"}, // ZIP+4 is valid
+		{"10001", 40.7506, -73.9971, "New York", "NY"},     // valid zip with no builders
 	}
 
 	for _, z := range zips {
@@ -66,22 +133,41 @@ func NewTestDB() (*sql.DB, error) {
 	}
 
 	pros := []struct {
-		name     string
-		zip      string
-		lat, lng float64
+		name  string
+		email string
+		zip   string
+		lat   float64
+		lng   float64
 	}{
-		{"Near Orlando (closest)", "32801", 28.54, -81.38},
-		{"Near LA (far)", "90210", 34.09, -118.41},
+		{"Near Orlando (closest)", "orlando@example.com", "32801", 28.54, -81.38},
+		{"Near LA (far)", "la@example.com", "90210", 34.09, -118.41},
 	}
 
 	for _, p := range pros {
 		if _, err := db.Exec(
-			`INSERT INTO professionals (name, specialty, zip_code, latitude, longitude) VALUES (?, ?, ?, ?, ?)`,
-			p.name, "General Contractor", p.zip, p.lat, p.lng,
+			`INSERT INTO professionals (name, email, phone, specialty, location, bio, zip_code, latitude, longitude)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			p.name,
+			p.email,
+			"(407) 555-0101",
+			"General Contractor",
+			"Test Location",
+			"A test builder biography.",
+			p.zip, p.lat, p.lng,
 		); err != nil {
 			db.Close()
 			return nil, err
 		}
+	}
+
+	// Seed one project for the first professional so profile pages exercise the
+	// projects section, and one image path for the image branch.
+	if _, err := db.Exec(
+		`INSERT INTO projects (professional_id, title, description, location, cost_estimate, completed_at)
+		 VALUES (1, 'Restored Farmhouse', 'A careful restoration.', 'Orlando, FL', 250000, '2023-06-01')`,
+	); err != nil {
+		db.Close()
+		return nil, err
 	}
 
 	return db, nil

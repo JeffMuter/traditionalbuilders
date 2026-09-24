@@ -53,11 +53,19 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Install templ
-        run: go install github.com/a-h/templ/cmd/templ@${{ env.TEMPL_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-      - name: Generate templates
-        run: templ generate
+      - name: Install templ + tailwindcss
+        run: |
+          go install github.com/a-h/templ/cmd/templ@${{ env.TEMPL_VERSION }}
+          npm install -g tailwindcss@${{ env.TAILWIND_VERSION }}
+
+      - name: Generate templates and CSS
+        run: |
+          templ generate
+          tailwindcss -i static/css/input.css -o static/css/output.css
 
       - name: Test (race)
         run: go test -race ./... -coverprofile=coverage.out
@@ -67,6 +75,48 @@ jobs:
         with:
           name: coverage
           path: coverage.out
+          if-no-files-found: ignore
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install templ + tailwindcss
+        run: |
+          go install github.com/a-h/templ/cmd/templ@${{ env.TEMPL_VERSION }}
+          npm install -g tailwindcss@${{ env.TAILWIND_VERSION }}
+
+      - name: Generate templates and CSS
+        run: |
+          templ generate
+          tailwindcss -i static/css/input.css -o static/css/output.css
+
+      # The runner has Chrome preinstalled; point the suite at it so go-rod
+      # never needs to download a browser revision.
+      - name: Browser E2E
+        env:
+          E2E_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
+        run: go test -tags=e2e -count=1 ./e2e/...
+
+      # Screenshots are written on success (review aid); artifacts/ also holds
+      # failure screenshots + DOM + diagnostics when a test fails.
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: e2e/artifacts/
           if-no-files-found: ignore
 
   build:

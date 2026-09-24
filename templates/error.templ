@@ -10,9 +10,9 @@ import (
 templ ErrorPage(status int, heading, message string) {
 	@profileShell(fmt.Sprintf("%s - Traditional Builders", heading)) {
 		<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-			<div class="text-center py-16">
+			<div class="text-center py-16" data-testid="error-page">
 				<div class="text-6xl mb-6">🏛️</div>
-				<p class="text-sm font-medium uppercase tracking-wide text-stone-400 dark:text-stone-500 mb-2">
+				<p class="text-sm font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-2">
 					{ strconv.Itoa(status) }
 				</p>
 				<h2 class="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-4">

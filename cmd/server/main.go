@@ -11,7 +11,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/emerald/traditionbuilders/internal/handlers"
-	"github.com/emerald/traditionbuilders/internal/logging"
 	"github.com/emerald/traditionbuilders/internal/store"
 	"github.com/emerald/traditionbuilders/internal/zipdata"
 )
@@ -82,27 +81,9 @@ func main() {
 	s := store.New(db)
 	h := &handlers.Handler{Store: s}
 
-	// Routes
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", handlers.Landing)
-	mux.HandleFunc("/gallery", handlers.Gallery)
-	mux.HandleFunc("/builders", h.BuildersPage)
-	mux.HandleFunc("/builders/{id}", h.Profile)
-	mux.HandleFunc("/api/builders", h.SearchBuilders)
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		if err := db.PingContext(r.Context()); err != nil {
-			logging.FromContext(r.Context()).Error("health check failed", "err", err)
-			http.Error(w, "unhealthy", http.StatusServiceUnavailable)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("ok\n"))
-	})
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-
-	// RequestLogger runs outermost so the request ID and scoped logger exist
-	// before Recover, letting panics be logged with the same correlation ID.
-	handler := handlers.RequestLogger(handlers.Recover(mux))
+	// Routes live in the handlers package so production, the render-contract
+	// tests, and the browser E2E suite all exercise the same mux.
+	handler := h.Routes(db, "static")
 
 	addr := ":8081"
 	if v := strings.TrimSpace(os.Getenv("ADDR")); v != "" {

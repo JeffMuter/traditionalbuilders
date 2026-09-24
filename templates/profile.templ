@@ -17,7 +17,7 @@ templ Profile(p models.Professional, projects []models.Project) {
 					Back to Results
 				</a>
 			</div>
-			<div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700 overflow-hidden transition-colors">
+			<div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700 overflow-hidden transition-colors" data-testid="profile">
 				if p.ImagePath != "" {
 					<div class="w-full h-64 overflow-hidden">
 						<img
@@ -41,14 +41,14 @@ templ Profile(p models.Professional, projects []models.Project) {
 					}
 				if p.Bio != "" {
 					<div class="mt-6 pt-6 border-t border-stone-100 dark:border-stone-700">
-						<h3 class="text-xs uppercase tracking-wide text-stone-400 dark:text-stone-500 mb-3">About</h3>
+						<h3 class="text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-3">About</h3>
 						<p class="text-stone-700 dark:text-stone-300 leading-relaxed">
 							{ p.Bio }
 						</p>
 					</div>
 				}
 				<div class="mt-6 pt-6 border-t border-stone-100 dark:border-stone-700">
-					<h3 class="text-xs uppercase tracking-wide text-stone-400 dark:text-stone-500 mb-3">Contact</h3>
+					<h3 class="text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-3">Contact</h3>
 					<div class="flex flex-wrap gap-3">
 						<a
 							href={ templ.SafeURL("mailto:" + p.Email) }
@@ -68,7 +68,7 @@ templ Profile(p models.Professional, projects []models.Project) {
 				</div>
 			</div>
 			</div>
-			<div class="mt-10">
+			<div class="mt-10" data-testid="projects">
 				<h3 class="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-5">
 					Past Projects
 				</h3>
@@ -87,7 +87,7 @@ templ Profile(p models.Professional, projects []models.Project) {
 				}
 			</div>
 			<div class="mt-10 pt-6 border-t border-stone-200 dark:border-stone-700 text-center">
-				<a href="/" class="inline-block text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-600 px-6 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 text-sm font-medium transition-colors">
+				<a href="/" data-testid="search-other" class="inline-block text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-600 px-6 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 text-sm font-medium transition-colors">
 					Search Other Builders
 				</a>
 			</div>
@@ -99,7 +99,7 @@ templ Profile(p models.Professional, projects []models.Project) {
 templ ProfileNotFound() {
 	@profileShell("Builder Not Found - Traditional Builders") {
 		<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-			<div class="text-center py-16">
+			<div class="text-center py-16" data-testid="profile-not-found">
 				<div class="text-6xl mb-6">🏛️</div>
 				<h2 class="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-4">
 					We couldn't find that builder

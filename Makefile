@@ -1,5 +1,5 @@
 .PHONY: help dev dev-watch build css templ migrate migrate-down migrate-status \
-        reset-db seed-zip-codes clean setup test ci release
+        reset-db seed-zip-codes clean setup test e2e ci release
 
 help:
 	@echo "Traditional Builders - Available Commands"
@@ -20,7 +20,8 @@ help:
 	@echo "  make seed-zip-codes - Import full GeoNames US zip code dataset (~41k rows)"
 	@echo ""
 	@echo "  make setup          - Full init: migrate + templ + css"
-	@echo "  make test           - Run tests"
+	@echo "  make test           - Run unit + render-contract tests (fast, no browser)"
+	@echo "  make e2e            - Run browser E2E suite (real Chromium, slower)"
 	@echo "  make ci             - Full CI gate: generate + fmt + vet + test -race + build"
 	@echo "  make release        - Build linux/amd64 + linux/arm64 release tarballs into dist/"
 	@echo "  make clean          - Remove generated files"
@@ -70,8 +71,18 @@ reset-db:
 seed-zip-codes:
 	go run ./cmd/seed-zips
 
-test:
+# test is the fast gate: unit tests plus the System 1 render-contract suite.
+# It depends on css because the static-asset crawler asserts that
+# /static/css/output.css is served (200), and output.css is generated.
+test: css templ
 	go test ./... -v
+
+# e2e is the browser gate (System 2). It is behind the `e2e` build tag so
+# `go test ./...` never launches a browser. E2E_CHROMIUM_EXECUTABLE overrides
+# the browser binary; otherwise go-rod uses the system Chromium if present,
+# or downloads its own pinned revision.
+e2e: css templ
+	go test -tags=e2e -count=1 ./e2e/...
 
 # ci is the single source of truth for "is this build healthy".
 # GitHub Actions installs the toolchain (templ, tailwindcss) and calls this,
