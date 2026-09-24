@@ -1,5 +1,5 @@
 .PHONY: help dev dev-watch build css templ migrate migrate-down migrate-status \
-        reset-db seed-zip-codes clean setup test
+        reset-db seed-zip-codes clean setup test ci release
 
 help:
 	@echo "Traditional Builders - Available Commands"
@@ -21,6 +21,8 @@ help:
 	@echo ""
 	@echo "  make setup          - Full init: migrate + templ + css"
 	@echo "  make test           - Run tests"
+	@echo "  make ci             - Full CI gate: generate + fmt + vet + test -race + build"
+	@echo "  make release        - Build linux/amd64 + linux/arm64 release tarballs into dist/"
 	@echo "  make clean          - Remove generated files"
 	@echo ""
 
@@ -68,6 +70,39 @@ seed-zip-codes:
 
 test:
 	go test ./... -v
+
+# ci is the single source of truth for "is this build healthy".
+# GitHub Actions installs the toolchain (templ, tailwindcss) and calls this,
+# so local and CI behaviour cannot drift. See PLAN_CI_CD.md.
+ci: templ css
+	@echo "==> gofmt"
+	@test -z "$$(gofmt -l . | grep -v '_templ.go')" || { echo "gofmt needed:"; gofmt -l . | grep -v '_templ.go'; exit 1; }
+	@echo "==> go vet"
+	go vet ./...
+	@echo "==> go test -race"
+	go test -race ./...
+	@echo "==> go build"
+	go build -o bin/server ./cmd/server
+	@echo "✓ CI gate passed"
+
+# Build portable release tarballs (binary + static + migrations + unit file).
+# Used by .github/workflows/release.yml on v* tags; runnable locally too.
+release: css templ
+	@command -v templ >/dev/null || { echo "templ not in PATH"; exit 1; }
+	@mkdir -p dist
+	GOOS=linux GOARCH=amd64 go build -o dist/server-amd64 ./cmd/server
+	GOOS=linux GOARCH=arm64 go build -o dist/server-arm64 ./cmd/server
+	@for arch in amd64 arm64; do \
+		stage="dist/traditionalbuilders-linux-$$arch"; \
+		rm -rf "$$stage"; mkdir -p "$$stage"; \
+		cp "dist/server-$$arch" "$$stage/server"; \
+		cp -r static "$$stage/static"; \
+		cp -r db/migrations "$$stage/migrations"; \
+		cp deploy/traditionalbuilders.service "$$stage/"; \
+		tar -C dist -czf "$$stage.tar.gz" "traditionalbuilders-linux-$$arch"; \
+	done
+	@rm -f dist/server-amd64 dist/server-arm64
+	@echo "✓ release tarballs in dist/"
 
 setup: clean
 	@echo "Setting up Traditional Builders..."

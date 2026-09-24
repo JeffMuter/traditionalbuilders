@@ -1,0 +1,15 @@
+.git
+.github
+.pi
+.claude
+node_modules
+dist
+tmp
+bin
+logs
+*.db
+*.db-shm
+*.db-wal
+*.bak
+.envrc
+traditionbuilders.db

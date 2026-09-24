@@ -1,0 +1,32 @@
+[Unit]
+Description=Traditional Builders web server
+Documentation=https://github.com/JeffMuter/traditionalbuilders
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=traditionalbuilders
+Group=traditionalbuilders
+WorkingDirectory=/opt/traditionalbuilders
+Environment=ADDR=:8080
+Environment=LOG_LEVEL=info
+ExecStart=/opt/traditionalbuilders/server
+Restart=on-failure
+RestartSec=3
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/traditionalbuilders
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target
