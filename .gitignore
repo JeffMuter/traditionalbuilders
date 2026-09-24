@@ -1,6 +1,8 @@
 *.db
 *.db-shm
 *.db-wal
+*.db.bak
+*.bak
 node_modules/
 static/css/output.css
 bin/

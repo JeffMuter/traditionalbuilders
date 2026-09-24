@@ -1,0 +1,11 @@
+{
+  "name": "zip_codes",
+  "source": "GeoNames",
+  "source_url": "https://download.geonames.org/export/zip/US.zip",
+  "license": "CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)",
+  "attribution": "Postal code data © GeoNames (https://www.geonames.org/), CC BY 4.0",
+  "fetched_at": "2026-09-24T19:16:41Z",
+  "row_count": 40976,
+  "columns": ["zip", "lat", "lng", "city", "state"],
+  "sha256": "02d1b3b92d2cd1b4822185e8117dd3e6a28e29bbf7c0a0a1557a79148ca52443"
+}

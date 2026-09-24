@@ -309,6 +309,18 @@ templ PageName() {
 - Naming: `NNN_description.sql` (e.g., `001_init.sql`)
 - Format: SQL files with `-- +goose Up` and `-- +goose Down` markers
 
+**Vendored datasets (embedded, not migrations):**
+- The ~41k-row `zip_codes` dataset ships in `internal/zipdata/` as a gzipped
+  TSV and is compiled into the server with `go:embed`; it is applied by
+  `internal/zipdata.EnsureLoaded`, not by a migration.
+- Load it with `make seed-zip-codes` / `go run ./cmd/seed-zips`, or
+  `server -seed-only`. The server also seeds best-effort on startup.
+- Idempotent via the `data_seeds` table (migration `007_data_seeds.sql`),
+  keyed by the dataset SHA-256: a changed dataset self-heals on next start.
+- Refresh with `./db/scripts/build-zip-dataset.sh --force` (manual, offline
+  generator). Source: GeoNames, **CC BY 4.0** — attribution required (footer
+  link + `internal/zipdata/README.md`). See `PLAN_ZIP_DATASET.md`.
+
 **Schema (current):**
 ```sql
 professionals (

@@ -31,6 +31,11 @@ RUN apt-get update \
 # SQLite is a local file opened relative to the working directory, so keep the
 # database next to the app and persist it with a bind mount:
 #   docker run -v "$PWD/data/traditionbuilders.db:/app/traditionbuilders.db" ...
+#
+# The full zip code dataset is embedded in the binary. On startup the server
+# applies it automatically when the database is already migrated; to apply it
+# after migrations without starting the web server, run:
+#   docker run ... /app/server -seed-only
 WORKDIR /app
 
 COPY --from=build /out/server /app/server

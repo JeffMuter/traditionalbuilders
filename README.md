@@ -28,6 +28,10 @@ nix-shell
 # Run database migrations
 goose -dir db/migrations sqlite3 traditionbuilders.db up
 
+# Load the full US zip code dataset (embedded, offline, ~41k rows).
+# `make dev` / `run` / `reset-db` also do this automatically.
+go run ./cmd/seed-zips
+
 # Generate templ templates
 templ generate
 
@@ -42,8 +46,23 @@ Visit `http://localhost:8080`
 ```
 .
 ├── cmd/server/          # Main application entry point
+├── cmd/seed-zips/       # Loads the embedded zip dataset into the DB
 ├── db/migrations/       # Database migrations
 ├── internal/            # Internal application code
+│   └── zipdata/         # Embedded GeoNames zip dataset + loader
 ├── templates/           # Templ templates
 └── static/              # Static assets (CSS, JS, images)
 ```
+
+## Zip code data & attribution
+
+The proximity search uses the GeoNames US postal-code dataset, vendored as a
+filtered, gzipped TSV in `internal/zipdata/` and embedded into the server
+binary (no network at deploy). It is licensed **CC BY 4.0** and the site footer
+carries the required attribution.
+
+Refresh cadence: manual. `./db/scripts/build-zip-dataset.sh --force` regenerates
+the vendored file from `download.geonames.org`; review and commit the diff. The
+server's `data_seeds` bookkeeping (keyed by checksum) re-applies a changed
+dataset automatically on the next start or `server -seed-only`. See
+`internal/zipdata/README.md` and `PLAN_ZIP_DATASET.md`.

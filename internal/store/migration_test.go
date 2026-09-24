@@ -173,3 +173,77 @@ func TestMigration006_RollbackDropsIndexes(t *testing.T) {
 		}
 	}
 }
+
+// TestMigration007_DataSeeds verifies migration 007 creates the data_seeds
+// bookkeeping table and that its Down section drops it.
+func TestMigration007_DataSeeds(t *testing.T) {
+	dir := migrationDir(t)
+	files, err := filepath.Glob(filepath.Join(dir, "*.sql"))
+	if err != nil {
+		t.Fatalf("glob: %v", err)
+	}
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	defer db.Close()
+
+	var mig007 string
+	for _, f := range files {
+		up, _ := splitGoose(t, f)
+		applySQL(t, db, up)
+		if strings.Contains(filepath.Base(f), "007") {
+			mig007 = f
+		}
+	}
+	if mig007 == "" {
+		t.Fatal("migration 007 not found")
+	}
+
+	var name string
+	if err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='data_seeds'`).Scan(&name); err != nil {
+		t.Fatalf("data_seeds missing after 007: %v", err)
+	}
+
+	_, down := splitGoose(t, mig007)
+	applySQL(t, db, down)
+	rows, err := db.Query(`SELECT name FROM sqlite_master WHERE type='table' AND name='data_seeds'`)
+	if err != nil {
+		t.Fatalf("query: %v", err)
+	}
+	defer rows.Close()
+	if rows.Next() {
+		t.Error("data_seeds still present after rollback")
+	}
+}
+
+// TestMigrations003_NoHardcodedZipSeed verifies the 113-row bootstrap seed is
+// gone from migration 003: applying all migrations yields an empty zip_codes
+// table (the full dataset is loaded separately by internal/zipdata).
+func TestMigrations003_NoHardcodedZipSeed(t *testing.T) {
+	dir := migrationDir(t)
+	files, err := filepath.Glob(filepath.Join(dir, "*.sql"))
+	if err != nil {
+		t.Fatalf("glob: %v", err)
+	}
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	defer db.Close()
+
+	for _, f := range files {
+		up, _ := splitGoose(t, f)
+		applySQL(t, db, up)
+	}
+
+	var n int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM zip_codes`).Scan(&n); err != nil {
+		t.Fatalf("count zip_codes: %v", err)
+	}
+	if n != 0 {
+		t.Errorf("zip_codes has %d rows after migrations; expected 0 (seed must come from internal/zipdata)", n)
+	}
+}

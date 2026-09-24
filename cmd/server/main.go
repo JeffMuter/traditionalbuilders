@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"log/slog"
 	"net/http"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/emerald/traditionbuilders/internal/handlers"
 	"github.com/emerald/traditionbuilders/internal/logging"
 	"github.com/emerald/traditionbuilders/internal/store"
+	"github.com/emerald/traditionbuilders/internal/zipdata"
 )
 
 // logLevelFromEnv maps LOG_LEVEL (debug|info|warn|error) to an slog.Level.
@@ -36,6 +38,12 @@ func main() {
 	})))
 	slog.Info("logging configured", "level", level.String())
 
+	// -seed-only applies the embedded zip dataset and exits. Deploy runs this
+	// after migrations so prod gets the full dataset without the web server
+	// depending on network access or a manual step.
+	seedOnly := flag.Bool("seed-only", false, "apply the embedded zip code dataset and exit")
+	flag.Parse()
+
 	// Initialize database
 	db, err := sql.Open("sqlite3", "./traditionbuilders.db")
 	if err != nil {
@@ -49,6 +57,26 @@ func main() {
 		os.Exit(1)
 	}
 	slog.Info("database connection established")
+
+	if *seedOnly {
+		if _, err := zipdata.EnsureLoaded(db); err != nil {
+			slog.Error("seed zip codes", "err", err)
+			os.Exit(1)
+		}
+		slog.Info("zip code dataset ready")
+		return
+	}
+
+	// Best-effort seed on normal startup: keeps a fresh dev/prod DB complete
+	// without a separate step. A failure (e.g. migrations not run yet) is
+	// logged, not fatal, so the server still starts and reports unhealthy.
+	if applied, err := zipdata.EnsureLoaded(db); err != nil {
+		slog.Warn("zip code seed skipped", "err", err)
+	} else if applied {
+		slog.Info("zip code dataset loaded")
+	} else {
+		slog.Info("zip code dataset already current")
+	}
 
 	// Store encapsulates all DB queries; handler receives the store, not the raw DB.
 	s := store.New(db)

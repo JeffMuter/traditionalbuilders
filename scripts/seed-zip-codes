@@ -1,8 +1,26 @@
 #!/usr/bin/env bash
-# Download and import the full GeoNames US zip code dataset (~41k rows).
-# Backs up the database first and validates the import; see
-# db/scripts/load_zipcodes.sh for the monthly refresh workflow.
+# Load the full GeoNames US zip code dataset into the database.
+#
+# The dataset is vendored in internal/zipdata and embedded into the binary, so
+# this is offline, reproducible, and idempotent. See internal/zipdata/README.md
+# for the refresh workflow.
+#
+# Usage:
+#   seed-zip-codes [path/to/traditionbuilders.db]
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "$SCRIPT_DIR/../db/scripts/load_zipcodes.sh" "$@"
+DB_PATH="${1:-traditionbuilders.db}"
+
+if [ ! -f "$DB_PATH" ]; then
+    echo "error: $DB_PATH not found — run 'migrate' first." >&2
+    exit 1
+fi
+
+go run ./cmd/seed-zips "$DB_PATH"
+
+COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM zip_codes;")
+echo "Integrity check: zip_codes now holds $COUNT rows."
+if [ "$COUNT" -lt 40000 ]; then
+    echo "warning: expected ~41k rows; import may be incomplete." >&2
+    exit 1
+fi

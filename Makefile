@@ -56,17 +56,19 @@ migrate-down:
 migrate-status:
 	goose -dir db/migrations sqlite3 traditionbuilders.db status
 
-# Drop the database file and replay all migrations from scratch.
+# Drop the database file, replay all migrations from scratch, then load the
+# full embedded zip dataset so a clean dev DB matches prod (~41k rows).
 reset-db:
 	rm -f traditionbuilders.db
 	goose -dir db/migrations sqlite3 traditionbuilders.db up
+	go run ./cmd/seed-zips
 	@echo "Database reset complete."
 
-# Download the full GeoNames US zip code CSV and bulk-import it.
-# Replaces the small seed set from migration 003 with ~41k real rows.
-# Delegates to db/scripts/load_zipcodes.sh (backs up the DB, validates the import).
+# Load the full GeoNames US zip code dataset (~41k rows) into the DB.
+# The dataset is vendored in internal/zipdata and embedded in the binary, so
+# this is offline and idempotent (no download).
 seed-zip-codes:
-	./db/scripts/load_zipcodes.sh
+	go run ./cmd/seed-zips
 
 test:
 	go test ./... -v
@@ -109,6 +111,8 @@ setup: clean
 	@mkdir -p bin static/css tmp
 	@echo "Running migrations..."
 	@goose -dir db/migrations sqlite3 traditionbuilders.db up
+	@echo "Loading zip code dataset..."
+	@go run ./cmd/seed-zips
 	@echo "Generating templates..."
 	@templ generate
 	@echo "Building CSS..."

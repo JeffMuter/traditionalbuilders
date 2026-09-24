@@ -7,6 +7,9 @@ mkdir -p bin static/css
 echo "Running migrations..."
 goose -dir db/migrations sqlite3 traditionbuilders.db up
 
+echo "Loading zip code dataset..."
+go run ./cmd/seed-zips
+
 echo "Generating templates..."
 templ generate
 

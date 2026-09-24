@@ -6,6 +6,11 @@
 #   - deploy/traditionalbuilders.service installed at
 #     /etc/systemd/system/traditionalbuilders.service
 #   - database migrated: goose -dir migrations sqlite3 traditionbuilders.db up
+#   - database seeded:   ./server -seed-only   (applies the embedded zip dataset)
+#
+# The zip code dataset is embedded in the server binary, so `deploy.sh` runs
+# `server -seed-only` after migrations automatically. No network or manual
+# data step is required on the host.
 #
 # Usage:
 #   DEPLOY_HOST=deploy@example.com deploy/deploy.sh
@@ -51,6 +56,12 @@ sudo cp -r "$tmp"/traditionalbuilders-linux-*/static "$dir/static"
 sudo cp -r "$tmp"/traditionalbuilders-linux-*/migrations "$dir/migrations"
 sudo chown -R traditionalbuilders:traditionalbuilders "$dir"
 sudo mv "$dir/server.new" "$dir/server"
+
+# Apply the embedded zip dataset after shipping the new binary (idempotent;
+# a checksum match is a no-op). Runs before restart so the server starts with
+# the current data already in place.
+echo "==> Seeding data (server -seed-only)"
+sudo -u traditionalbuilders bash -c "cd '$dir' && ./server -seed-only"
 
 sudo systemctl restart "$service"
 sleep 1
