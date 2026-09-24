@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log/slog"
 
 	"github.com/emerald/traditionbuilders/internal/models"
 )
@@ -73,6 +74,7 @@ func (s *Store) ListProjects(ctx context.Context, professionalID int) ([]models.
 			cost                        sql.NullInt64
 		)
 		if err := rows.Scan(&pr.ID, &pr.Title, &description, &location, &cost, &done); err != nil {
+			slog.Error("scan project row", "professional_id", professionalID, "err", err)
 			continue
 		}
 		pr.Description = description.String

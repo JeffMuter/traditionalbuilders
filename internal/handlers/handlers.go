@@ -13,10 +13,20 @@ type Handler struct {
 	Store *store.Store
 }
 
+// Landing serves the home page. Any other unmatched path falls through to the
+// "/" pattern, so it is answered with a styled 404 instead of the home page.
 func Landing(w http.ResponseWriter, r *http.Request) {
-	templates.Landing().Render(r.Context(), w)
+	if r.URL.Path != "/" {
+		renderStatus(w, r, http.StatusNotFound, templates.ErrorPage(
+			http.StatusNotFound,
+			"Page not found",
+			"The page you're looking for doesn't exist or has moved.",
+		))
+		return
+	}
+	render(w, r, templates.Landing())
 }
 
 func Gallery(w http.ResponseWriter, r *http.Request) {
-	templates.Gallery().Render(r.Context(), w)
+	render(w, r, templates.Gallery())
 }

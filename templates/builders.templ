@@ -5,7 +5,7 @@ import (
 	"github.com/emerald/traditionbuilders/internal/models"
 )
 
-templ Builders(zip string, results []models.BuilderResult, errorMsg string) {
+templ Builders(zip string, results []models.BuilderResult, errorMsg string, errorHint string) {
 	<!DOCTYPE html>
 	<html lang="en" class="">
 		<head>
@@ -59,7 +59,7 @@ templ Builders(zip string, results []models.BuilderResult, errorMsg string) {
 									{ errorMsg }
 								</h2>
 								<p class="text-stone-600 dark:text-stone-300 mb-8">
-									Please return to the search page and enter a valid 5-digit US zip code.
+									{ errorHint }
 								</p>
 								<a href="/" class="inline-block bg-stone-800 dark:bg-stone-700 text-white px-8 py-3 rounded-lg hover:bg-stone-700 dark:hover:bg-stone-600 font-medium transition-colors">
 									Return to Search

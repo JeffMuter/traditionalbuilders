@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"regexp"
 
@@ -23,10 +23,16 @@ func writeError(w http.ResponseWriter, err error) {
 	msg := "internal error"
 	if store.IsZipNotFound(err) {
 		msg = "zip not found"
+	} else {
+		// Unexpected store failures are logged server-side; the client only
+		// sees the generic message.
+		slog.Error("search builders failed", "status", status, "err", err)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(map[string]string{"error": msg})
+	if encErr := json.NewEncoder(w).Encode(map[string]string{"error": msg}); encErr != nil {
+		slog.Error("encode error response", "err", encErr)
+	}
 }
 
 // baseZip strips any ZIP+4 extension, returning the 5-digit base zip.
@@ -48,7 +54,7 @@ func (h *Handler) SearchBuilders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := h.Store.FindBuildersNear(context.Background(), baseZip(zip))
+	results, err := h.Store.FindBuildersNear(r.Context(), baseZip(zip))
 	if err != nil {
 		writeError(w, err)
 		return

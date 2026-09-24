@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -12,28 +14,27 @@ import (
 func (h *Handler) Profile(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
-		w.WriteHeader(http.StatusNotFound)
-		templates.ProfileNotFound().Render(r.Context(), w)
+		renderStatus(w, r, http.StatusNotFound, templates.ProfileNotFound())
 		return
 	}
 
 	pro, err := h.Store.GetProfessional(r.Context(), id)
-	if err == store.ErrProfessionalNotFound {
-		w.WriteHeader(http.StatusNotFound)
-		templates.ProfileNotFound().Render(r.Context(), w)
+	if errors.Is(err, store.ErrProfessionalNotFound) {
+		renderStatus(w, r, http.StatusNotFound, templates.ProfileNotFound())
 		return
 	}
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		serverError(w, r, "get professional", err)
 		return
 	}
 
-	// A profile is still worth showing when the projects lookup fails; log-free
-	// degradation to an empty list keeps the page useful.
+	// A profile is still worth showing when the projects lookup fails; log the
+	// failure and degrade to an empty list so the page stays useful.
 	projects, err := h.Store.ListProjects(r.Context(), id)
 	if err != nil {
+		slog.Error("list projects", "professional_id", id, "err", err)
 		projects = nil
 	}
 
-	templates.Profile(pro, projects).Render(r.Context(), w)
+	render(w, r, templates.Profile(pro, projects))
 }

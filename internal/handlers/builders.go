@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/emerald/traditionbuilders/internal/store"
@@ -12,19 +13,23 @@ func (h *Handler) BuildersPage(w http.ResponseWriter, r *http.Request) {
 	zip := r.URL.Query().Get("zip")
 
 	if zip == "" || !zipPattern.MatchString(zip) {
-		templates.Builders(zip, nil, "Please enter a valid 5-digit zip code.").Render(r.Context(), w)
+		render(w, r, templates.Builders(zip, nil,
+			"Please enter a valid 5-digit zip code.",
+			"Please return to the search page and enter a valid 5-digit US zip code."))
 		return
 	}
 
 	results, err := h.Store.FindBuildersNear(r.Context(), baseZip(zip))
-	if err == store.ErrZipNotFound {
-		templates.Builders(zip, nil, "We don't recognize zip code "+zip+". Try a nearby zip code, or ask your builder to register.").Render(r.Context(), w)
+	if errors.Is(err, store.ErrZipNotFound) {
+		render(w, r, templates.Builders(zip, nil,
+			"We don't recognize zip code "+zip+".",
+			"Try a nearby zip code, or ask your builder to register."))
 		return
 	}
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		serverError(w, r, "find builders near zip", err)
 		return
 	}
 
-	templates.Builders(zip, results, "").Render(r.Context(), w)
+	render(w, r, templates.Builders(zip, results, "", ""))
 }

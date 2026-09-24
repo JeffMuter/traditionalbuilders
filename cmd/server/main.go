@@ -2,8 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -12,17 +13,21 @@ import (
 )
 
 func main() {
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, nil)))
+
 	// Initialize database
 	db, err := sql.Open("sqlite3", "./traditionbuilders.db")
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("open database", "err", err)
+		os.Exit(1)
 	}
 	defer db.Close()
 
 	if err := db.Ping(); err != nil {
-		log.Fatal(err)
+		slog.Error("ping database", "err", err)
+		os.Exit(1)
 	}
-	log.Println("Database connection established")
+	slog.Info("database connection established")
 
 	// Store encapsulates all DB queries; handler receives the store, not the raw DB.
 	s := store.New(db)
@@ -37,9 +42,14 @@ func main() {
 	mux.HandleFunc("/api/builders", h.SearchBuilders)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
+	// Recover runs inside LogRequests so panics are turned into a logged 500
+	// that the request log can still observe.
+	handler := handlers.LogRequests(handlers.Recover(mux))
+
 	addr := ":8081"
-	log.Printf("Server starting on http://localhost%s", addr)
-	if err := http.ListenAndServe(addr, mux); err != nil {
-		log.Fatal(err)
+	slog.Info("server starting", "url", "http://localhost"+addr)
+	if err := http.ListenAndServe(addr, handler); err != nil {
+		slog.Error("server stopped", "err", err)
+		os.Exit(1)
 	}
 }
