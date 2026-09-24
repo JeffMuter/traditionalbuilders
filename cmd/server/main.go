@@ -33,6 +33,7 @@ func main() {
 	mux.HandleFunc("/", handlers.Landing)
 	mux.HandleFunc("/gallery", handlers.Gallery)
 	mux.HandleFunc("/builders", h.BuildersPage)
+	mux.HandleFunc("/builders/{id}", h.Profile)
 	mux.HandleFunc("/api/builders", h.SearchBuilders)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"regexp"
@@ -8,7 +9,34 @@ import (
 	"github.com/emerald/traditionbuilders/internal/store"
 )
 
-var zipPattern = regexp.MustCompile(`^\d{5}$`)
+// zipPattern accepts a 5-digit ZIP or a ZIP+4 (e.g. "32801" or "32801-1234").
+// Search always uses the 5-digit base, so callers should normalize with
+// baseZip before querying the store.
+var zipPattern = regexp.MustCompile(`^\d{5}(?:-\d{4})?$`)
+
+// writeError writes an error response with the appropriate HTTP status code.
+// It is reached only after the zip-format check has passed, so the possible
+// inputs are ErrZipNotFound (406), DB/context errors (500), or unknown errors
+// (500). The status mapping lives in store.ToHTTPStatus.
+func writeError(w http.ResponseWriter, err error) {
+	status := store.ToHTTPStatus(err)
+	msg := "internal error"
+	if store.IsZipNotFound(err) {
+		msg = "zip not found"
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(map[string]string{"error": msg})
+}
+
+// baseZip strips any ZIP+4 extension, returning the 5-digit base zip.
+// Non-matching input is returned unchanged.
+func baseZip(zip string) string {
+	if len(zip) > 5 {
+		return zip[:5]
+	}
+	return zip
+}
 
 // SearchBuilders handles GET /api/builders?zip=XXXXX and returns JSON.
 func (h *Handler) SearchBuilders(w http.ResponseWriter, r *http.Request) {
@@ -20,11 +48,9 @@ func (h *Handler) SearchBuilders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := h.Store.FindBuildersNear(r.Context(), zip)
-	if err != nil && err != store.ErrZipNotFound {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "internal error"})
+	results, err := h.Store.FindBuildersNear(context.Background(), baseZip(zip))
+	if err != nil {
+		writeError(w, err)
 		return
 	}
 

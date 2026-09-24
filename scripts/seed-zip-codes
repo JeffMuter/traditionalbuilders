@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 # Download and import the full GeoNames US zip code dataset (~41k rows).
-# Replaces the small seed set from migration 003.
-go run cmd/seed-zips/main.go "$@"
+# Backs up the database first and validates the import; see
+# db/scripts/load_zipcodes.sh for the monthly refresh workflow.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "$SCRIPT_DIR/../db/scripts/load_zipcodes.sh" "$@"

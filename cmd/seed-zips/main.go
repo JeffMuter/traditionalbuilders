@@ -17,6 +17,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -54,6 +55,17 @@ func main() {
 
 	log.Printf("Done — %d zip codes loaded.", len(rows))
 }
+
+// zipRE is the integrity skiplist: only 5-digit US ZIPs are imported.
+var zipRE = regexp.MustCompile(`^\d{5}$`)
+
+// sanity bounds for continental US + AK/HI; used to reject corrupt rows.
+const (
+	minLat = 15.0
+	maxLat = 72.0
+	minLng = -180.0
+	maxLng = -60.0
+)
 
 type zipRow struct {
 	Zip   string
@@ -111,18 +123,30 @@ func parseGeonames(data []byte) ([]zipRow, error) {
 	defer rc.Close()
 
 	var rows []zipRow
+	var skipped int
 	scanner := bufio.NewScanner(rc)
 	for scanner.Scan() {
 		parts := strings.Split(scanner.Text(), "\t")
 		if len(parts) < 11 {
+			skipped++
+			continue
+		}
+		if !zipRE.MatchString(parts[1]) {
+			skipped++
 			continue
 		}
 		lat, err := strconv.ParseFloat(parts[9], 64)
 		if err != nil {
+			skipped++
 			continue
 		}
 		lng, err := strconv.ParseFloat(parts[10], 64)
 		if err != nil {
+			skipped++
+			continue
+		}
+		if lat < minLat || lat > maxLat || lng < minLng || lng > maxLng {
+			skipped++
 			continue
 		}
 		rows = append(rows, zipRow{
@@ -132,6 +156,9 @@ func parseGeonames(data []byte) ([]zipRow, error) {
 			City:  parts[2],
 			State: parts[4],
 		})
+	}
+	if skipped > 0 {
+		log.Printf("Integrity check: skipped %d malformed out-of-range rows", skipped)
 	}
 	return rows, scanner.Err()
 }

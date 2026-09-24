@@ -5,16 +5,11 @@ package store
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"math"
 	"sort"
 
 	"github.com/emerald/traditionbuilders/internal/models"
 )
-
-// ErrZipNotFound is returned when the searched zip code is not in the
-// zip_codes lookup table.
-var ErrZipNotFound = errors.New("zip code not found")
 
 // Store wraps a *sql.DB and exposes typed query methods.
 type Store struct {
@@ -26,8 +21,17 @@ func New(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-// FindBuildersNear looks up the lat/lng for zip, then returns the 10 closest
-// professionals sorted by haversine distance.
+// maxResults caps the number of builders returned by a proximity search.
+const maxResults = 10
+
+// searchRadiusMiles bounds the prefilter used before the exact haversine sort.
+// It is generous enough that the nearest maxResults are always included while
+// keeping the candidate scan small; widen it if searches legitimately span a
+// larger region.
+const searchRadiusMiles = 500.0
+
+// FindBuildersNear looks up the lat/lng for zip, then returns the closest
+// professionals sorted by haversine distance, capped at maxResults.
 //
 // The returned slice is always non-nil. ErrZipNotFound is returned (with an
 // empty slice) when zip is not in the zip_codes table.
@@ -46,15 +50,27 @@ func (s *Store) FindBuildersNear(ctx context.Context, zip string) ([]models.Buil
 		return results, err
 	}
 
-	// 2. Fetch all professionals with coordinates, joining to city/state
+	// 2. Bounding-box prefilter lets the lat/lng index narrow the candidate
+	//    set before the exact haversine pass. Degrees per mile shrink with
+	//    latitude, so the longitude span is divided by cos(lat).
+	latDelta := searchRadiusMiles / 69.0
+	lngDelta := searchRadiusMiles / (69.0 * math.Cos(userLat*math.Pi/180))
+	if lngDelta > 180 {
+		lngDelta = 180
+	}
+
+	// 3. Fetch candidate professionals with coordinates, joining to city/state.
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT p.id, p.name, p.specialty, p.zip_code,
+		SELECT p.id, p.name, p.specialty, COALESCE(p.zip_code, ''),
 		       p.latitude, p.longitude,
 		       COALESCE(z.city, ''), COALESCE(z.state, '')
 		FROM professionals p
 		LEFT JOIN zip_codes z ON p.zip_code = z.zip
 		WHERE p.latitude IS NOT NULL AND p.longitude IS NOT NULL
-	`)
+		  AND p.latitude  BETWEEN ? AND ?
+		  AND p.longitude BETWEEN ? AND ?
+	`, userLat-latDelta, userLat+latDelta,
+		userLng-lngDelta, userLng+lngDelta)
 	if err != nil {
 		return results, err
 	}
@@ -88,12 +104,12 @@ func (s *Store) FindBuildersNear(ctx context.Context, zip string) ([]models.Buil
 		return results, err
 	}
 
-	// 3. Sort ascending by distance, cap at 10
+	// 4. Sort ascending by distance, cap at maxResults.
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].DistanceMiles < results[j].DistanceMiles
 	})
-	if len(results) > 10 {
-		results = results[:10]
+	if len(results) > maxResults {
+		results = results[:maxResults]
 	}
 
 	return results, nil

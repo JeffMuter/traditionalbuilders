@@ -62,8 +62,9 @@ reset-db:
 
 # Download the full GeoNames US zip code CSV and bulk-import it.
 # Replaces the small seed set from migration 003 with ~41k real rows.
+# Delegates to db/scripts/load_zipcodes.sh (backs up the DB, validates the import).
 seed-zip-codes:
-	go run cmd/seed-zips/main.go
+	./db/scripts/load_zipcodes.sh
 
 test:
 	go test ./... -v

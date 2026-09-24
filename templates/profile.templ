@@ -1,0 +1,152 @@
+package templates
+
+import (
+	"fmt"
+	"github.com/emerald/traditionbuilders/internal/models"
+)
+
+// Profile renders a single builder's public profile page.
+templ Profile(p models.Professional, projects []models.Project) {
+	@profileShell(p.Name + " - Traditional Builders") {
+		<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+			<div class="mb-8">
+				<a href="javascript:history.back()" class="inline-flex items-center text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 text-sm font-medium transition-colors">
+					<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+					</svg>
+					Back to Results
+				</a>
+			</div>
+			<div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700 overflow-hidden transition-colors">
+				if p.ImagePath != "" {
+					<div class="w-full h-64 overflow-hidden">
+						<img
+							src={ fmt.Sprintf("/static/images/%s", p.ImagePath) }
+							alt={ fmt.Sprintf("Work by %s", p.Name) }
+							class="w-full h-full object-cover"
+						/>
+					</div>
+				}
+				<div class="p-8">
+					<h2 class="text-4xl font-serif font-bold text-stone-900 dark:text-stone-100">
+						{ p.Name }
+					</h2>
+					<p class="text-lg text-stone-700 dark:text-stone-300 font-medium mt-2">
+						{ p.Specialty }
+					</p>
+					if displayLocation(p) != "" {
+						<p class="text-stone-500 dark:text-stone-400 mt-1">
+							{ displayLocation(p) }
+						</p>
+					}
+				if p.Bio != "" {
+					<div class="mt-6 pt-6 border-t border-stone-100 dark:border-stone-700">
+						<h3 class="text-xs uppercase tracking-wide text-stone-400 dark:text-stone-500 mb-3">About</h3>
+						<p class="text-stone-700 dark:text-stone-300 leading-relaxed">
+							{ p.Bio }
+						</p>
+					</div>
+				}
+				<div class="mt-6 pt-6 border-t border-stone-100 dark:border-stone-700">
+					<h3 class="text-xs uppercase tracking-wide text-stone-400 dark:text-stone-500 mb-3">Contact</h3>
+					<div class="flex flex-wrap gap-3">
+						<a
+							href={ templ.SafeURL("mailto:" + p.Email) }
+							class="inline-block bg-stone-800 dark:bg-stone-700 text-white px-6 py-2 rounded-lg hover:bg-stone-700 dark:hover:bg-stone-600 text-sm font-medium transition-colors"
+						>
+							Email { p.Name }
+						</a>
+						if p.Phone != "" {
+							<a
+								href={ templ.SafeURL(telHref(p.Phone)) }
+								class="inline-block text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-600 px-6 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 text-sm font-medium transition-colors"
+							>
+								{ p.Phone }
+							</a>
+						}
+					</div>
+				</div>
+			</div>
+			</div>
+			<div class="mt-10">
+				<h3 class="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-5">
+					Past Projects
+				</h3>
+				if len(projects) == 0 {
+					<div class="bg-white dark:bg-stone-800 rounded-lg border border-dashed border-stone-300 dark:border-stone-600 p-8 text-center transition-colors">
+						<p class="text-stone-500 dark:text-stone-400">
+							{ p.Name } hasn't listed any projects yet. Reach out directly to ask about their portfolio.
+						</p>
+					</div>
+				} else {
+					<div class="grid gap-5">
+						for _, pr := range projects {
+							@projectCard(pr)
+						}
+					</div>
+				}
+			</div>
+			<div class="mt-10 pt-6 border-t border-stone-200 dark:border-stone-700 text-center">
+				<a href="/" class="inline-block text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-600 px-6 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 text-sm font-medium transition-colors">
+					Search Other Builders
+				</a>
+			</div>
+		</section>
+	}
+}
+
+// ProfileNotFound renders the 404 body for an unknown builder id.
+templ ProfileNotFound() {
+	@profileShell("Builder Not Found - Traditional Builders") {
+		<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+			<div class="text-center py-16">
+				<div class="text-6xl mb-6">🏛️</div>
+				<h2 class="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-4">
+					We couldn't find that builder
+				</h2>
+				<p class="text-stone-600 dark:text-stone-300 mb-8 max-w-lg mx-auto">
+					The profile you're looking for doesn't exist or has been removed.
+				</p>
+				<a href="/" class="inline-block bg-stone-800 dark:bg-stone-700 text-white px-8 py-3 rounded-lg hover:bg-stone-700 dark:hover:bg-stone-600 font-medium transition-colors">
+					Return to Search
+				</a>
+			</div>
+		</section>
+	}
+}
+
+templ projectCard(pr models.Project) {
+	<div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700 p-6 transition-colors hover:shadow-md">
+		<div class="flex justify-between items-start gap-4">
+			<div class="flex-grow">
+				<h4 class="text-xl font-serif font-bold text-stone-900 dark:text-stone-100 mb-1">
+					{ pr.Title }
+				</h4>
+				if pr.Location != "" {
+					<p class="text-stone-500 dark:text-stone-400 text-sm">
+						{ pr.Location }
+						if completedYear(pr.CompletedAt) != "" {
+							{ fmt.Sprintf("· Completed %s", completedYear(pr.CompletedAt)) }
+						}
+					</p>
+				} else if completedYear(pr.CompletedAt) != "" {
+					<p class="text-stone-500 dark:text-stone-400 text-sm">
+						{ fmt.Sprintf("Completed %s", completedYear(pr.CompletedAt)) }
+					</p>
+				}
+			</div>
+			if pr.CostEstimate > 0 {
+				<div class="flex-shrink-0 text-right">
+					<span class="inline-block bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+						{ formatUSD(pr.CostEstimate) }
+					</span>
+				</div>
+			}
+		</div>
+		if pr.Description != "" {
+			<p class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-700 text-stone-700 dark:text-stone-300 leading-relaxed">
+				{ pr.Description }
+			</p>
+		}
+	</div>
+}
