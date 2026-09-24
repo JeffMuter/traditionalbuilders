@@ -101,6 +101,116 @@ make clean
 clean
 ```
 
+## Git and Version Control
+
+**Core Commands:**
+```bash
+# Check status
+git status
+
+# Stage all changes
+git add -A
+
+# Stage specific files
+git add templates/*.templ
+
+# View changes
+git diff           # Unstaged changes
+git diff --staged  # Staged changes
+
+# Commit with message
+git commit -m "Reason for change"
+
+# Push commits to remote
+git push origin master
+
+# Pull latest changes
+git pull origin master
+
+# View commit history
+git log --oneline -10
+
+git log --stat      # With file changes
+
+git show <commit>   # View specific commit details
+```
+
+**Commit Message Convention:**
+- Use imperative mood: "Add", "Fix", "Update" (not "Added", "Fixed")
+- Present tense: "Add feature X" (not "Added feature X")
+- Be concise but informative (1-3 lines optimal)
+- Start with implied verb when describing what the commit does
+
+**Example Commits:**
+```bash
+git commit -m "Add authentication middleware"
+git commit -m "Fix database connection leak in handler"
+git commit -m "Update dependencies: go 1.25 → 1.26"
+git commit -m "Configure GitHub Actions CI pipeline"
+```
+
+**Branch Workflow:**
+```bash
+# Create and checkout new branch
+git checkout -b feature/your-feature-name
+
+# Switch branches
+git checkout master
+
+# List all branches
+git branch -a
+
+# Delete local branch
+git branch -d feature/your-feature-name
+```
+
+**Generated Files to Ignore:**
+- `templates/*_templ.go` - Auto-generated from `.templ` files
+- `static/css/output.css` - Auto-generated from Tailwind input
+- `bin/` - Compiled Go binaries
+- `traditionbuilders.db*` - SQLite database and WAL files
+- `.env*` - Environment variables (if any)
+
+These are already in `.gitignore` and should NOT be committed.
+
+**Remote Configuration:**
+```bash
+# Configure SSH remote (recommended for Git commands)
+git remote set-url origin git@github.com:USERNAME/PROJECT.git
+
+git remote -v  # Verify
+
+# Or HTTPS remote (requires GitHub credentials)
+git remote set-url origin https://github.com/USERNAME/PROJECT.git
+```
+
+**Before Pushing:**
+```bash
+# Ensure nix-shell is active (if you changed build inputs in shell.nix)
+# Check generated files aren't accidentally staged
+
+git status
+
+# Review unstaged vs staged changes
+git diff      # Unstaged (not committed)
+git diff --staged  # Staged (will be committed)
+
+# Staged but uncommitted changes? Drop them:
+git restore --staged <file>
+
+# Write a good commit message and push:
+git commit -m "Your message here"
+git push origin master
+```
+
+**Best Practices:**
+- Commit often and in small logical chunks
+- Run `go test ./...` before committing code changes
+- Don't commit generated files (they're in .gitignore)
+- Use descriptive commit messages for easy history review
+- Push early to avoid surprises with merge conflicts
+- Review diffs before committing
+
 ## Project Structure
 
 ```
